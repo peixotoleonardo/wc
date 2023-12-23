@@ -2,6 +2,7 @@
 
 import * as commander from 'commander';
 
+import { CommandLoader } from '../src/command-loader.mjs';
 import { getVersion } from '../src/helpers/get-version.mjs';
 
 commander.program
