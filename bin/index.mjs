@@ -5,15 +5,12 @@ import * as commander from 'commander';
 import { getVersion } from '../src/helpers/get-version.mjs';
 
 commander.program
-  .version(
-    await getVersion(),
-    '-v, --version',
-    'Get the current version',
-  )
-  .helpOption(
-    '-h, --help',
-    'Get help for command',
-  );
+  .version(await getVersion(), '-v, --version', 'Get the current version')
+  .usage('<option> <file>')
+  .argument('[file]')
+  .helpOption('-h, --help', 'Get help for command');
+
+CommandLoader.load(commander.program);
 
 await commander.program.parseAsync(process.argv);
 
