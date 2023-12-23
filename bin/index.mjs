@@ -2,16 +2,16 @@
 
 import * as commander from 'commander';
 
-import { CommandLoader } from '../src/command-loader.mjs';
+import { OptionLoader } from '../src/option-loader.mjs';
 import { getVersion } from '../src/helpers/get-version.mjs';
 
 commander.program
   .version(await getVersion(), '-v, --version', 'Get the current version')
-  .usage('<option> <file>')
-  .argument('[file]')
+  .usage('<option> <files...>')
+  .argument('<files...>')
   .helpOption('-h, --help', 'Get help for command');
 
-CommandLoader.load(commander.program);
+OptionLoader.load(commander.program);
 
 await commander.program.parseAsync(process.argv);
 
