@@ -9,7 +9,7 @@ export const POSITION_OF_QUANTITY_OF_BYTES = 1;
 export const countBytes = async (files) => {
   const result = [];
 
-  const tasks = files.map(async (file) => { 
+  const tasks = files.map(async (file) => {
     result.push([file, (await fs.readFile(file)).length]);
   });
   await Promise.all(tasks);
