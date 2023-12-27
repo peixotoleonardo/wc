@@ -2,9 +2,9 @@
 import { Option } from 'commander';
 
 import { 
-  countBytesOfFiles,
+  countBytes,
   POSITION_OF_QUANTITY_OF_BYTES,
-} from '../core/count-bytes-of-files.mjs';
+} from '../core/count-bytes.mjs';
 
 export class CountBytesOption {
   /**
@@ -20,7 +20,7 @@ export class CountBytesOption {
    * @param {string[]} files 
    */
   async handle(files) {
-    const result = await countBytesOfFiles(files);
+    const result = await countBytes(files);
 
     const maxLength = result.at(-1)[POSITION_OF_QUANTITY_OF_BYTES]
       .toString().split('').length;

@@ -6,7 +6,7 @@ export const POSITION_OF_QUANTITY_OF_BYTES = 1;
   * @param {string[]} files
   * @returns {Promise<[string, number][]}
   */
-export const countBytesOfFiles = async (files) => {
+export const countBytes = async (files) => {
   const result = [];
 
   const tasks = files.map(async (file) => { 
