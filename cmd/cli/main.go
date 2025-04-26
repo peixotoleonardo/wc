@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 )
 
 type (
@@ -84,19 +85,37 @@ func countStats(data []byte, countBytes, countChars, countLines, countWords bool
 }
 
 func processFiles(files []string, flags CountOptions) ([]Count, error) {
-	results := make([]Count, 0, len(files))
+	results := make([]Count, len(files))
+	errChan := make(chan error, len(files))
 
-	for _, file := range files {
-		data, err := os.ReadFile(file)
+	var wg sync.WaitGroup
 
+	for i, file := range files {
+		wg.Add(1)
+
+		go func(index int, filename string) {
+			defer wg.Done()
+
+			data, err := os.ReadFile(filename)
+
+			if err != nil {
+				errChan <- fmt.Errorf("error reading file %s: %w", file, err)
+				return
+			}
+
+			count := countStats(data, flags.Bytes, flags.Chars, flags.Lines, flags.Words)
+			count.Filename = filename
+			results[i] = count
+		}(i, file)
+	}
+
+	wg.Wait()
+	close(errChan)
+
+	for err := range errChan {
 		if err != nil {
-			return nil, fmt.Errorf("error reading file %s: %w", file, err)
+			return nil, err
 		}
-
-		count := countStats(data, flags.Bytes, flags.Chars, flags.Lines, flags.Words)
-
-		count.Filename = file
-		results = append(results, count)
 	}
 
 	return results, nil
