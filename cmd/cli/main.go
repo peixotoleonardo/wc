@@ -221,10 +221,6 @@ func errorHandle(err error) {
 }
 
 func main() {
-	fi, err := os.Stdin.Stat()
-
-	errorHandle(err)
-
 	opts := []Option{
 		NewOption("print the byte counts", "bytes", "c"),
 		NewOption("print the character counts", "chars", "m"),
@@ -238,6 +234,10 @@ func main() {
 		printHelp(opts)
 		return
 	}
+
+	fi, err := os.Stdin.Stat()
+
+	errorHandle(err)
 
 	var summaries []Count
 
