@@ -76,9 +76,7 @@ func countStats(data []byte, countBytes, countChars, countLines, countWords bool
 	}
 
 	if countWords {
-		count.Words = len(strings.FieldsFunc(content, func(r rune) bool {
-			return r == ' ' || r == '\n' || r == '\t'
-		}))
+		count.Words = len(strings.Fields(content))
 	}
 
 	return count
