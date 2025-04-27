@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"sync"
@@ -59,23 +60,23 @@ func NewOption(description, command, shortcut string) Option {
 	}
 }
 
-func countStats(data []byte, countBytes, countChars, countLines, countWords bool) Count {
+func countStats(data []byte, flags CountOptions) Count {
 	count := Count{}
 	content := string(data)
 
-	if countBytes {
+	if flags.Bytes {
 		count.Bytes = len(data)
 	}
 
-	if countChars {
+	if flags.Chars {
 		count.Chars = len([]rune(content))
 	}
 
-	if countLines {
+	if flags.Lines {
 		count.Lines = len(strings.Split(content, "\n")) - 1
 	}
 
-	if countWords {
+	if flags.Words {
 		count.Words = len(strings.Fields(content))
 	}
 
@@ -101,7 +102,8 @@ func processFiles(files []string, flags CountOptions) ([]Count, error) {
 				return
 			}
 
-			count := countStats(data, flags.Bytes, flags.Chars, flags.Lines, flags.Words)
+			count := countStats(data, flags)
+
 			count.Filename = filename
 			results[i] = count
 		}(i, file)
@@ -211,7 +213,18 @@ func handleCommand(option *CountOptions, command string) {
 	}
 }
 
+func errorHandle(err error) {
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
 func main() {
+	fi, err := os.Stdin.Stat()
+
+	errorHandle(err)
+
 	opts := []Option{
 		NewOption("print the byte counts", "bytes", "c"),
 		NewOption("print the character counts", "chars", "m"),
@@ -226,11 +239,18 @@ func main() {
 		return
 	}
 
-	summaries, err := processFiles(files, flags)
+	var summaries []Count
 
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+	if (fi.Mode() & os.ModeCharDevice) == 0 {
+		data, err := io.ReadAll(os.Stdin)
+
+		errorHandle(err)
+
+		summaries = []Count{countStats(data, flags)}
+	} else {
+		summaries, err = processFiles(files, flags)
+
+		errorHandle(err)
 	}
 
 	printResults(summaries, flags)
