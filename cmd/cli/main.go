@@ -62,22 +62,42 @@ func NewOption(description, command, shortcut string) Option {
 
 func countStats(data []byte, flags CountOptions) Count {
 	count := Count{}
-	content := string(data)
 
-	if flags.Bytes {
+	if flags.Bytes && !flags.Lines && !flags.Words && !flags.Chars {
 		count.Bytes = len(data)
+		return count
 	}
 
-	if flags.Chars {
-		count.Chars = len([]rune(content))
-	}
+	count.Bytes = len(data)
+	inWord := false
 
-	if flags.Lines {
-		count.Lines = len(strings.Split(content, "\n")) - 1
-	}
+	for i := 0; i < count.Bytes; i++ {
+		b := data[i]
 
-	if flags.Words {
-		count.Words = len(strings.Fields(content))
+		if flags.Lines && b == '\n' {
+			count.Lines++
+		}
+
+		// Conta palavras
+		if flags.Words {
+			isSpace := b == ' ' || b == '\n' || b == '\t' || b == '\r'
+
+			if !isSpace && !inWord {
+				count.Words++
+				inWord = true
+			} else if isSpace {
+				inWord = false
+			}
+		}
+
+		// Conta caracteres UTF-8
+		if flags.Chars {
+			// Verifica se é início de caractere UTF-8
+			// Bits começando com 0 ou 11 indicam início de caractere
+			if b&0xC0 != 0x80 {
+				count.Chars++
+			}
+		}
 	}
 
 	return count
@@ -110,6 +130,7 @@ func processFiles(files []string, flags CountOptions) ([]Count, error) {
 	}
 
 	wg.Wait()
+
 	close(errChan)
 
 	for err := range errChan {
